@@ -1,4 +1,6 @@
-const _ = require("underscore");
-const mongoose = require("mongoose");
-var tab = [1,2,3];
-console.log(_.contains(tab,2));
+const express = require('express');
+const app = express();
+
+app.get('/',(req,res)=>{
+    res.send('Hello world!');
+});
