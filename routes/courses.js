@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
+const Joi = require('joi');
+const { schema } = require('joi/lib/types/object');
+
 const courses = [
     { id:1, name:"course1" },
     { id:2, name:"course2" },

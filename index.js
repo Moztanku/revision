@@ -1,82 +1,31 @@
+const config = require('config');
 const express = require('express');
 const app = express();
-
-const Joi = require('joi');
-const { schema } = require('joi/lib/types/object');
-
-
 app.use(express.json());
-app.use(express.static(__dirname+'/html-css/Strona 2/'))
+app.use('/api/papaj',express.static(__dirname+'/html-css/Strona 2/'));
 
+const helmet = require('helmet');
+app.use(helmet());
 
-// GET
+const debug = require('debug')('app:debug');
 
-app.get('/',(req,res)=>{
-    res.sendFile(__dirname+'/html-css/Strona 2/index.html');
-});
+const morgan = require('morgan');
+if(app.get('env')==='development'){
+    debug('   [DEVELOPMENT]   ');
+    app.use(morgan('tiny'));
+};
 
-const courses = [
-    { id:1, name:"course1" },
-    { id:2, name:"course2" },
-    { id:3, name:"course3" }
-];
+const courses = require('./routes/courses');
+const main = require('./routes/main');
+app.use('/api/courses', courses);
+app.use('/',main);
 
-app.get('/api/courses', (req,res)=>{
-    res.send(courses);
-})
+app.set('view engine','pug');
+app.set('views','./views');
+// CONFIG
 
-app.get('/api/courses/:id',(req,res)=>{
-    const course = courses.find(c=>c.id===parseInt(req.params.id));
-    if(!course)
-       return res.status(404).send("Course with the given ID was not found.");
-    res.send(course);
-})
-
-// POST
-
-app.post('/api/courses',(req,res)=>{
-    const { error } = validateCourse(req.body);
-    if(error)
-        return res.status(400).send(error);
-    const course = {
-        id: courses.length+1,
-        name: req.body.name
-    };
-    courses.push(course);
-    res.send(course);
-})
-
-// PUT
-
-app.put('/api/courses/:id',(req,res)=>{
-    const course = courses.find(c=>c.id===parseInt(req.params.id));
-    if(!course)
-        return res.status(404).send("Course with the given ID doesn't exist");
-    const { error } = validateCourse(req.body);
-    if(error)
-       return res.status(400).send(error);
-    course.name = req.body.name;
-    res.send(course);
-})
-
-// DELETE
-
-app.delete('/api/courses/:id',(req,res)=>{
-    const course = courses.find(c=>c.id===parseInt(req.params.id));
-    if(!course)
-        return res.status(404).send("Course with the given ID doesn't exist");
-    const index = courses.indexOf(course);
-    res.send(courses.splice(index,1));
-})
-
-// FUNCTIONS
-
-function validateCourse(course){
-    const schema = {
-        name: Joi.string().min(3).required()
-    };
-    return Joi.validate(course,schema);
-}
+console.log(`Application Name: ${config.get('name')}`);
+console.log(`Date: ${config.get('date.day')}-${config.get('date.month')}-${config.get('date.year')}`);
 
 // PORT
 const port = process.env.PORT || 3000;
